@@ -1,0 +1,11 @@
+{
+  "origin": "https://github.com/xqy2006/ModelTrace",
+  "license": "MIT",
+  "snapshot_date": "2026-11-11",
+  "commit": null,
+  "sha256": {
+    "fingerprint.py": "387fe5c44cc5f859995432267b0d3b462fc26e82419fc22e3ee7f36cc2502d98",
+    "data/unified_bank.json": "f267d0513aa06981d024ec5394746fceddf44e4e8a75fa6bf8304255f4b32d6d",
+    "data/challenges.json": "c91e32c879b2f8c6454ce678ed644b7b6ef1f446e5b4fbf30799abcbc5edf666"
+  }
+}

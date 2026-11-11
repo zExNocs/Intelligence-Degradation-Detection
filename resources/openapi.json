@@ -1,0 +1,3069 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Intelligence Degradation Detection",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/healthz": {
+      "get": {
+        "summary": "Health",
+        "description": "Expose process liveness without private account or model metadata.",
+        "operationId": "health_healthz_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Health Healthz Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/session": {
+      "get": {
+        "summary": "Session",
+        "description": "Let the app check session validity without requesting model data.",
+        "operationId": "session_api_v1_auth_session_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "boolean"
+                  },
+                  "type": "object",
+                  "title": "Response Session Api V1 Auth Session Get"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Login",
+        "description": "Exchange a valid access token for a revocable HttpOnly session.",
+        "operationId": "login_api_v1_auth_session_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "boolean"
+                  },
+                  "type": "object",
+                  "title": "Response Login Api V1 Auth Session Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Logout",
+        "description": "Remove the browser session cookie.",
+        "operationId": "logout_api_v1_auth_session_delete",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        }
+      }
+    },
+    "/api/v1/preview-policy": {
+      "get": {
+        "summary": "Preview Policy",
+        "description": "Permit trusted preview construction without relaxing host script elements.\n\nBlob documents inherit the host policy. Their additional policy and opaque\niframe sandbox constrain these scripts to the preview document.",
+        "operationId": "preview_policy_api_v1_preview_policy_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Preview Policy Api V1 Preview Policy Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/token": {
+      "put": {
+        "summary": "Rotate",
+        "description": "Persist a new operator token and revoke all previous sessions.",
+        "operationId": "rotate_api_v1_auth_token_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TokenInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "boolean"
+                  },
+                  "type": "object",
+                  "title": "Response Rotate Api V1 Auth Token Put"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/models/reasoning-options": {
+      "get": {
+        "summary": "Model Reasoning Options",
+        "description": "Share the same model policy used to validate saved and executed checks.",
+        "operationId": "model_reasoning_options_api_v1_models_reasoning_options_get",
+        "parameters": [
+          {
+            "name": "protocol",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 64,
+              "title": "Protocol"
+            }
+          },
+          {
+            "name": "model",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 250,
+              "title": "Model"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "title": "Response Model Reasoning Options Api V1 Models Reasoning Options Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/accounts": {
+      "get": {
+        "summary": "Accounts",
+        "description": "List account metadata without credentials.",
+        "operationId": "accounts_api_v1_accounts_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AccountView"
+                  },
+                  "type": "array",
+                  "title": "Response Accounts Api V1 Accounts Get"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Account",
+        "description": "Create one direct account.",
+        "operationId": "create_account_api_v1_accounts_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccountInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/accounts/models/preview": {
+      "post": {
+        "summary": "Preview Models",
+        "description": "Fetch models for an unsaved form without persisting its credentials.",
+        "operationId": "preview_models_api_v1_accounts_models_preview_post",
+        "parameters": [
+          {
+            "name": "account_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Account Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccountInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "title": "Response Preview Models Api V1 Accounts Models Preview Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/accounts/{identity}": {
+      "put": {
+        "summary": "Update Account",
+        "description": "Edit account preferences while preserving omitted secrets.",
+        "operationId": "update_account_api_v1_accounts__identity__put",
+        "parameters": [
+          {
+            "name": "identity",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Identity"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccountInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/accounts/{identity}/models/refresh": {
+      "post": {
+        "summary": "Refresh Models",
+        "description": "Refresh a catalogue explicitly through its authoritative route.",
+        "operationId": "refresh_models_api_v1_accounts__identity__models_refresh_post",
+        "parameters": [
+          {
+            "name": "identity",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Identity"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/accounts/{identity}/probe": {
+      "post": {
+        "summary": "Probe",
+        "description": "Queue a metered connectivity probe using the account defaults.",
+        "operationId": "probe_api_v1_accounts__identity__probe_post",
+        "parameters": [
+          {
+            "name": "identity",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Identity"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Run"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/accounts/{identity}/route/verify": {
+      "post": {
+        "summary": "Verify Route",
+        "description": "Re-read source credentials and proxy association without calling a model.",
+        "operationId": "verify_route_api_v1_accounts__identity__route_verify_post",
+        "parameters": [
+          {
+            "name": "identity",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Identity"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/accounts/{identity}/probes": {
+      "get": {
+        "summary": "Probe History",
+        "description": "Return a small history of connectivity checks for this account.",
+        "operationId": "probe_history_api_v1_accounts__identity__probes_get",
+        "parameters": [
+          {
+            "name": "identity",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Identity"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Run"
+                  },
+                  "title": "Response Probe History Api V1 Accounts  Identity  Probes Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sources/sub2api/accounts": {
+      "get": {
+        "summary": "Source Accounts",
+        "description": "Discover supported and unsupported accounts without importing them.",
+        "operationId": "source_accounts_api_v1_sources_sub2api_accounts_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "type": "array",
+                  "title": "Response Source Accounts Api V1 Sources Sub2Api Accounts Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sources/sub2api/import": {
+      "post": {
+        "summary": "Import Accounts",
+        "description": "Import only explicitly selected source accounts.",
+        "operationId": "import_accounts_api_v1_sources_sub2api_import_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImportInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AccountView"
+                  },
+                  "type": "array",
+                  "title": "Response Import Accounts Api V1 Sources Sub2Api Import Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sources/sub2api/sync": {
+      "post": {
+        "summary": "Sync Accounts",
+        "description": "Synchronize source-owned credentials and proxies immediately.",
+        "operationId": "sync_accounts_api_v1_sources_sub2api_sync_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "integer"
+                  },
+                  "type": "object",
+                  "title": "Response Sync Accounts Api V1 Sources Sub2Api Sync Post"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/groups": {
+      "get": {
+        "summary": "Groups",
+        "description": "List recipes and stable check identities.",
+        "operationId": "groups_api_v1_groups_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/GroupView"
+                  },
+                  "type": "array",
+                  "title": "Response Groups Api V1 Groups Get"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Group",
+        "description": "Create a quota-checked batch of account evaluations.",
+        "operationId": "create_group_api_v1_groups_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GroupInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Group"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/groups/{identity}": {
+      "put": {
+        "summary": "Update Group",
+        "description": "Version a recipe without modifying historical run snapshots.",
+        "operationId": "update_group_api_v1_groups__identity__put",
+        "parameters": [
+          {
+            "name": "identity",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Identity"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GroupInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Group"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete Group",
+        "description": "Remove an idle group and its checks while retaining historical records.",
+        "operationId": "delete_group_api_v1_groups__identity__delete",
+        "parameters": [
+          {
+            "name": "identity",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Identity"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/groups/{identity}/run": {
+      "post": {
+        "summary": "Run Group",
+        "description": "Create one aligned batch without changing the cron schedule.",
+        "operationId": "run_group_api_v1_groups__identity__run_post",
+        "parameters": [
+          {
+            "name": "identity",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Identity"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "title": "Response Run Group Api V1 Groups  Identity  Run Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/targets/{identity}/run": {
+      "post": {
+        "summary": "Run Target",
+        "description": "Queue a single check unless it already has an active run.",
+        "operationId": "run_target_api_v1_targets__identity__run_post",
+        "parameters": [
+          {
+            "name": "identity",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Identity"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Run"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/groups/{identity}/history": {
+      "get": {
+        "summary": "History",
+        "description": "Page complete batch columns while keeping account rows aligned.",
+        "operationId": "history_api_v1_groups__identity__history_get",
+        "parameters": [
+          {
+            "name": "identity",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Identity"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 30,
+              "minimum": 1,
+              "default": 5,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HistoryPage"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/runs/{identity}": {
+      "get": {
+        "summary": "Run Detail",
+        "description": "Read raw output only when a user opens result details.",
+        "operationId": "run_detail_api_v1_runs__identity__get",
+        "parameters": [
+          {
+            "name": "identity",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Identity"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/runs/{identity}/cancel": {
+      "post": {
+        "summary": "Cancel Run",
+        "description": "Stop work and exclude the cancelled result from dashboard metrics.",
+        "operationId": "cancel_run_api_v1_runs__identity__cancel_post",
+        "parameters": [
+          {
+            "name": "identity",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Identity"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Run"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/runs/{identity}/review": {
+      "put": {
+        "summary": "Review",
+        "description": "Set or clear a human quality judgment.",
+        "operationId": "review_api_v1_runs__identity__review_put",
+        "parameters": [
+          {
+            "name": "identity",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Identity"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Run"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fingerprint/challenges": {
+      "get": {
+        "summary": "Challenges",
+        "description": "Read the immutable named fingerprint prompts.",
+        "operationId": "challenges_api_v1_fingerprint_challenges_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Challenge"
+                  },
+                  "type": "array",
+                  "title": "Response Challenges Api V1 Fingerprint Challenges Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fingerprint/catalog": {
+      "get": {
+        "summary": "Fingerprint Catalog",
+        "description": "Describe actual loaded candidates and their fixed bank version.",
+        "operationId": "fingerprint_catalog_api_v1_fingerprint_catalog_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Fingerprint Catalog Api V1 Fingerprint Catalog Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schedules/preview": {
+      "post": {
+        "summary": "Schedule Preview",
+        "description": "Validate a five-field cron and preview its next five occurrences.",
+        "operationId": "schedule_preview_api_v1_schedules_preview_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CronInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "items": {
+                      "type": "number"
+                    },
+                    "type": "array"
+                  },
+                  "type": "object",
+                  "title": "Response Schedule Preview Api V1 Schedules Preview Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/clock": {
+      "get": {
+        "summary": "Clock",
+        "description": "Provide a server time anchor for browser-independent countdowns.",
+        "operationId": "clock_api_v1_clock_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Clock Api V1 Clock Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings": {
+      "get": {
+        "summary": "Settings",
+        "description": "Return defaults without revealing the administrator key.",
+        "operationId": "settings_api_v1_settings_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettingsView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Update Settings",
+        "description": "Apply global defaults while preserving an omitted source key.",
+        "operationId": "update_settings_api_v1_settings_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SettingsInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettingsView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dashboard": {
+      "get": {
+        "summary": "Dashboard",
+        "description": "Aggregate non-cancelled results and classify current findings separately.",
+        "operationId": "dashboard_api_v1_dashboard_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardView"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AccountInput": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "protocol": {
+            "type": "string",
+            "enum": [
+              "openai_responses",
+              "anthropic_messages",
+              "openai_chat"
+            ],
+            "title": "Protocol",
+            "default": "openai_responses"
+          },
+          "base_url": {
+            "type": "string",
+            "title": "Base Url",
+            "default": "https://api.openai.com"
+          },
+          "path": {
+            "type": "string",
+            "title": "Path",
+            "default": "/v1/responses"
+          },
+          "models_path": {
+            "type": "string",
+            "title": "Models Path",
+            "default": "/v1/models"
+          },
+          "api_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Api Key"
+          },
+          "headers": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Headers"
+          },
+          "default_model": {
+            "type": "string",
+            "title": "Default Model",
+            "default": ""
+          },
+          "default_effort": {
+            "type": "string",
+            "title": "Default Effort",
+            "default": "default"
+          },
+          "max_parallel": {
+            "type": "integer",
+            "maximum": 64.0,
+            "minimum": 1.0,
+            "title": "Max Parallel",
+            "default": 1
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": true
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "AccountInput",
+        "description": "Validate editable account properties without exposing stored credentials."
+      },
+      "AccountView": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "protocol": {
+            "type": "string",
+            "title": "Protocol"
+          },
+          "base_url": {
+            "type": "string",
+            "title": "Base Url"
+          },
+          "path": {
+            "type": "string",
+            "title": "Path"
+          },
+          "models_path": {
+            "type": "string",
+            "title": "Models Path"
+          },
+          "default_model": {
+            "type": "string",
+            "title": "Default Model"
+          },
+          "default_effort": {
+            "type": "string",
+            "title": "Default Effort"
+          },
+          "max_parallel": {
+            "type": "integer",
+            "title": "Max Parallel"
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "external_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Id"
+          },
+          "account_type": {
+            "type": "string",
+            "title": "Account Type"
+          },
+          "source_active": {
+            "type": "boolean",
+            "title": "Source Active"
+          },
+          "source_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Error"
+          },
+          "synced_at": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Synced At"
+          },
+          "last_model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Model"
+          },
+          "last_effort": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Effort"
+          },
+          "models": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Models"
+          },
+          "models_at": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Models At"
+          },
+          "models_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Models Error"
+          },
+          "has_key": {
+            "type": "boolean",
+            "title": "Has Key"
+          },
+          "has_headers": {
+            "type": "boolean",
+            "title": "Has Headers"
+          },
+          "has_proxy": {
+            "type": "boolean",
+            "title": "Has Proxy"
+          },
+          "proxy": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProxyView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "protocol",
+          "base_url",
+          "path",
+          "models_path",
+          "default_model",
+          "default_effort",
+          "max_parallel",
+          "enabled",
+          "source",
+          "external_id",
+          "account_type",
+          "source_active",
+          "source_error",
+          "synced_at",
+          "last_model",
+          "last_effort",
+          "models",
+          "models_at",
+          "models_error",
+          "has_key",
+          "has_headers",
+          "has_proxy"
+        ],
+        "title": "AccountView",
+        "description": "Expose account routing and preferences while withholding all secrets."
+      },
+      "Call": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "run_id": {
+            "type": "string",
+            "title": "Run Id"
+          },
+          "account_id": {
+            "type": "string",
+            "title": "Account Id"
+          },
+          "order": {
+            "type": "integer",
+            "title": "Order",
+            "default": 0
+          },
+          "challenge_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Challenge Id"
+          },
+          "expected_count": {
+            "type": "integer",
+            "title": "Expected Count",
+            "default": 0
+          },
+          "prompt": {
+            "type": "string",
+            "title": "Prompt"
+          },
+          "status": {
+            "$ref": "#/components/schemas/Status",
+            "default": "queued"
+          },
+          "output": {
+            "$ref": "#/components/schemas/Output"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "created_at": {
+            "type": "number",
+            "title": "Created At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "run_id",
+          "account_id",
+          "prompt"
+        ],
+        "title": "Call",
+        "description": "Persist one independently scheduled upstream invocation."
+      },
+      "Challenge": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "name_en": {
+            "type": "string",
+            "title": "Name En"
+          },
+          "expected_count": {
+            "type": "integer",
+            "title": "Expected Count"
+          },
+          "prompt": {
+            "type": "string",
+            "title": "Prompt"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "name_en",
+          "expected_count",
+          "prompt"
+        ],
+        "title": "Challenge",
+        "description": "Describe a fixed challenge whose text is versioned with its evaluator."
+      },
+      "CronInput": {
+        "properties": {
+          "expression": {
+            "type": "string",
+            "title": "Expression"
+          },
+          "timezone": {
+            "type": "string",
+            "title": "Timezone"
+          }
+        },
+        "type": "object",
+        "required": [
+          "expression",
+          "timezone"
+        ],
+        "title": "CronInput",
+        "description": "Preview a schedule before persisting it."
+      },
+      "DashboardView": {
+        "properties": {
+          "account_count": {
+            "type": "integer",
+            "title": "Account Count"
+          },
+          "check_count": {
+            "type": "integer",
+            "title": "Check Count"
+          },
+          "runs_24h": {
+            "type": "integer",
+            "title": "Runs 24H"
+          },
+          "completed_24h": {
+            "type": "integer",
+            "title": "Completed 24H"
+          },
+          "total_tokens": {
+            "type": "integer",
+            "title": "Total Tokens"
+          },
+          "unknown_usage_count": {
+            "type": "integer",
+            "title": "Unknown Usage Count"
+          },
+          "average_seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Average Seconds"
+          },
+          "success_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Success Rate"
+          },
+          "alerts": {
+            "additionalProperties": {
+              "items": {
+                "$ref": "#/components/schemas/RunSummary"
+              },
+              "type": "array"
+            },
+            "type": "object",
+            "title": "Alerts"
+          }
+        },
+        "type": "object",
+        "required": [
+          "account_count",
+          "check_count",
+          "runs_24h",
+          "completed_24h",
+          "total_tokens",
+          "unknown_usage_count",
+          "average_seconds",
+          "success_rate",
+          "alerts"
+        ],
+        "title": "DashboardView",
+        "description": "Separate quality, attribution, manual findings, and operational errors."
+      },
+      "Difference": {
+        "properties": {
+          "path": {
+            "type": "string",
+            "title": "Path"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "expected": {
+            "$ref": "#/components/schemas/JsonValue"
+          },
+          "actual": {
+            "$ref": "#/components/schemas/JsonValue"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "path",
+          "reason"
+        ],
+        "title": "Difference",
+        "description": "Explain a structural mismatch using an unambiguous JSON path."
+      },
+      "Group": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "recipe": {
+            "$ref": "#/components/schemas/GroupInput"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision",
+            "default": 1
+          },
+          "next_run_at": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Run At"
+          },
+          "created_at": {
+            "type": "number",
+            "title": "Created At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "recipe"
+        ],
+        "title": "Group",
+        "description": "Persist a named recipe and the next due server timestamp."
+      },
+      "GroupInput": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/Kind"
+          },
+          "prompt": {
+            "type": "string",
+            "maxLength": 100000,
+            "title": "Prompt",
+            "default": ""
+          },
+          "cron": {
+            "type": "string",
+            "title": "Cron",
+            "default": "*/30 * * * *"
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": true
+          },
+          "comparison_mode": {
+            "type": "string",
+            "enum": [
+              "json",
+              "regex"
+            ],
+            "title": "Comparison Mode",
+            "default": "json"
+          },
+          "expected_json": {
+            "type": "string",
+            "title": "Expected Json",
+            "default": "{}"
+          },
+          "regex_pattern": {
+            "type": "string",
+            "title": "Regex Pattern",
+            "default": ""
+          },
+          "challenge_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Challenge Ids"
+          },
+          "parallel": {
+            "type": "boolean",
+            "title": "Parallel",
+            "default": false
+          },
+          "expected_identity": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Identity"
+          },
+          "targets": {
+            "items": {
+              "$ref": "#/components/schemas/TargetInput"
+            },
+            "type": "array",
+            "maxItems": 100,
+            "minItems": 1,
+            "title": "Targets"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "kind",
+          "targets"
+        ],
+        "title": "GroupInput",
+        "description": "Describe a versioned evaluation recipe shared by selected accounts."
+      },
+      "GroupView": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "recipe": {
+            "$ref": "#/components/schemas/GroupInput"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          },
+          "next_run_at": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Run At"
+          },
+          "targets": {
+            "items": {
+              "$ref": "#/components/schemas/Target"
+            },
+            "type": "array",
+            "title": "Targets"
+          },
+          "active_runs": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Active Runs"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "recipe",
+          "revision",
+          "next_run_at",
+          "targets"
+        ],
+        "title": "GroupView",
+        "description": "Expose group configuration and stable per-account check identities."
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HistoryPage": {
+        "properties": {
+          "batches": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Batches"
+          },
+          "runs": {
+            "items": {
+              "$ref": "#/components/schemas/RunSummary"
+            },
+            "type": "array",
+            "title": "Runs"
+          },
+          "has_more": {
+            "type": "boolean",
+            "title": "Has More"
+          },
+          "total_batches": {
+            "type": "integer",
+            "title": "Total Batches"
+          }
+        },
+        "type": "object",
+        "required": [
+          "batches",
+          "runs",
+          "has_more",
+          "total_batches"
+        ],
+        "title": "HistoryPage",
+        "description": "Page aligned execution batches without returning full output bodies."
+      },
+      "ImportInput": {
+        "properties": {
+          "ids": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "maxItems": 100,
+            "minItems": 1,
+            "title": "Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ids"
+        ],
+        "title": "ImportInput",
+        "description": "Select explicit source account identifiers for import."
+      },
+      "JsonValue": {},
+      "Judgment": {
+        "properties": {
+          "verdict": {
+            "type": "string",
+            "title": "Verdict",
+            "default": "unreviewed"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score"
+          },
+          "matched": {
+            "type": "integer",
+            "title": "Matched",
+            "default": 0
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total",
+            "default": 0
+          },
+          "differences": {
+            "items": {
+              "$ref": "#/components/schemas/Difference"
+            },
+            "type": "array",
+            "title": "Differences"
+          },
+          "analysis": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonValue"
+            },
+            "type": "object",
+            "title": "Analysis"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "Judgment",
+        "description": "Separate measurable quality, reference attribution, and human review."
+      },
+      "Kind": {
+        "type": "string",
+        "enum": [
+          "pelican",
+          "comparison",
+          "modeltrace",
+          "other"
+        ],
+        "title": "Kind",
+        "description": "Identify the four supported evaluation experiences."
+      },
+      "LoginInput": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "maxLength": 512,
+            "minLength": 1,
+            "title": "Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "token"
+        ],
+        "title": "LoginInput",
+        "description": "Accept a token only in a request body, never in a URL."
+      },
+      "Output": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "title": "Text",
+            "default": ""
+          },
+          "usage": {
+            "$ref": "#/components/schemas/Usage"
+          },
+          "finish_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finish Reason"
+          },
+          "elapsed": {
+            "type": "number",
+            "title": "Elapsed",
+            "default": 0
+          },
+          "first_token_seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Token Seconds"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "Output",
+        "description": "Normalize protocol-specific output without losing terminal state."
+      },
+      "ProxyView": {
+        "properties": {
+          "source_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Id"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "protocol": {
+            "type": "string",
+            "title": "Protocol"
+          },
+          "host": {
+            "type": "string",
+            "title": "Host"
+          },
+          "port": {
+            "type": "integer",
+            "title": "Port"
+          },
+          "authenticated": {
+            "type": "boolean",
+            "title": "Authenticated"
+          }
+        },
+        "type": "object",
+        "required": [
+          "protocol",
+          "host",
+          "port",
+          "authenticated"
+        ],
+        "title": "ProxyView",
+        "description": "Expose the source route for comparison without authentication secrets."
+      },
+      "ReviewInput": {
+        "properties": {
+          "verdict": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "pass",
+                  "fail"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verdict"
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Note",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "ReviewInput",
+        "description": "Set or clear a human judgment with an optional explanation."
+      },
+      "Run": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "batch_id": {
+            "type": "string",
+            "title": "Batch Id"
+          },
+          "group_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Group Id"
+          },
+          "target_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Id"
+          },
+          "account_id": {
+            "type": "string",
+            "title": "Account Id"
+          },
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          },
+          "snapshot": {
+            "$ref": "#/components/schemas/Snapshot"
+          },
+          "status": {
+            "$ref": "#/components/schemas/Status",
+            "default": "queued"
+          },
+          "created_at": {
+            "type": "number",
+            "title": "Created At"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "output": {
+            "$ref": "#/components/schemas/Output"
+          },
+          "judgment": {
+            "$ref": "#/components/schemas/Judgment"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "review": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "pass",
+                  "fail"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review"
+          },
+          "review_note": {
+            "type": "string",
+            "title": "Review Note",
+            "default": ""
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "account_id",
+          "kind",
+          "snapshot"
+        ],
+        "title": "Run",
+        "description": "Track one check result, independently of its individual API calls."
+      },
+      "RunDetail": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "batch_id": {
+            "type": "string",
+            "title": "Batch Id"
+          },
+          "group_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Group Id"
+          },
+          "target_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Id"
+          },
+          "account_id": {
+            "type": "string",
+            "title": "Account Id"
+          },
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          },
+          "snapshot": {
+            "$ref": "#/components/schemas/Snapshot"
+          },
+          "status": {
+            "$ref": "#/components/schemas/Status",
+            "default": "queued"
+          },
+          "created_at": {
+            "type": "number",
+            "title": "Created At"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "output": {
+            "$ref": "#/components/schemas/Output"
+          },
+          "judgment": {
+            "$ref": "#/components/schemas/Judgment"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "review": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "pass",
+                  "fail"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review"
+          },
+          "review_note": {
+            "type": "string",
+            "title": "Review Note",
+            "default": ""
+          },
+          "calls": {
+            "items": {
+              "$ref": "#/components/schemas/Call"
+            },
+            "type": "array",
+            "title": "Calls"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "account_id",
+          "kind",
+          "snapshot",
+          "calls"
+        ],
+        "title": "RunDetail",
+        "description": "Expose the immutable recipe and each individual invocation result."
+      },
+      "RunSummary": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "batch_id": {
+            "type": "string",
+            "title": "Batch Id"
+          },
+          "group_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Group Id"
+          },
+          "target_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Id"
+          },
+          "account_id": {
+            "type": "string",
+            "title": "Account Id"
+          },
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          },
+          "status": {
+            "$ref": "#/components/schemas/Status"
+          },
+          "created_at": {
+            "type": "number",
+            "title": "Created At"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "account_name": {
+            "type": "string",
+            "title": "Account Name"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "effort": {
+            "type": "string",
+            "title": "Effort"
+          },
+          "verdict": {
+            "type": "string",
+            "title": "Verdict"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score"
+          },
+          "review": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "elapsed": {
+            "type": "number",
+            "title": "Elapsed",
+            "default": 0
+          },
+          "total_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Tokens"
+          },
+          "preview": {
+            "type": "string",
+            "title": "Preview",
+            "default": ""
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "batch_id",
+          "group_id",
+          "target_id",
+          "account_id",
+          "kind",
+          "status",
+          "created_at",
+          "account_name",
+          "model",
+          "effort",
+          "verdict"
+        ],
+        "title": "RunSummary",
+        "description": "Project lightweight history without loading private full output bodies."
+      },
+      "SettingsInput": {
+        "properties": {
+          "timezone": {
+            "type": "string",
+            "title": "Timezone"
+          },
+          "default_cron": {
+            "type": "string",
+            "title": "Default Cron",
+            "default": "*/30 * * * *"
+          },
+          "retention_days": {
+            "type": "integer",
+            "maximum": 3650.0,
+            "minimum": 1.0,
+            "title": "Retention Days",
+            "default": 30
+          },
+          "retention_count": {
+            "type": "integer",
+            "maximum": 10000.0,
+            "minimum": 1.0,
+            "title": "Retention Count",
+            "default": 100
+          },
+          "account_check_limit": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Account Check Limit",
+            "default": 5
+          },
+          "global_parallel": {
+            "type": "integer",
+            "maximum": 128.0,
+            "minimum": 1.0,
+            "title": "Global Parallel",
+            "default": 4
+          },
+          "call_timeout": {
+            "type": "integer",
+            "maximum": 3600.0,
+            "minimum": 10.0,
+            "title": "Call Timeout",
+            "default": 600
+          },
+          "max_output_tokens": {
+            "type": "integer",
+            "maximum": 262144.0,
+            "minimum": 256.0,
+            "title": "Max Output Tokens",
+            "default": 16384
+          },
+          "sub2api_url": {
+            "type": "string",
+            "title": "Sub2Api Url",
+            "default": ""
+          },
+          "sub2api_key": {
+            "type": "string",
+            "title": "Sub2Api Key",
+            "default": ""
+          },
+          "sync_seconds": {
+            "type": "integer",
+            "maximum": 86400.0,
+            "minimum": 10.0,
+            "title": "Sync Seconds",
+            "default": 60
+          },
+          "prompts": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "propertyNames": {
+              "$ref": "#/components/schemas/Kind"
+            },
+            "type": "object",
+            "title": "Prompts"
+          },
+          "default_expected_json": {
+            "type": "string",
+            "title": "Default Expected Json",
+            "default": "{\"evens\":[2,4,6,8,10],\"sum_of_squares\":220,\"count\":5}"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "SettingsInput",
+        "description": "Retain an existing administrator key when the field is omitted."
+      },
+      "SettingsView": {
+        "properties": {
+          "timezone": {
+            "type": "string",
+            "title": "Timezone"
+          },
+          "default_cron": {
+            "type": "string",
+            "title": "Default Cron",
+            "default": "*/30 * * * *"
+          },
+          "retention_days": {
+            "type": "integer",
+            "maximum": 3650.0,
+            "minimum": 1.0,
+            "title": "Retention Days",
+            "default": 30
+          },
+          "retention_count": {
+            "type": "integer",
+            "maximum": 10000.0,
+            "minimum": 1.0,
+            "title": "Retention Count",
+            "default": 100
+          },
+          "account_check_limit": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Account Check Limit",
+            "default": 5
+          },
+          "global_parallel": {
+            "type": "integer",
+            "maximum": 128.0,
+            "minimum": 1.0,
+            "title": "Global Parallel",
+            "default": 4
+          },
+          "call_timeout": {
+            "type": "integer",
+            "maximum": 3600.0,
+            "minimum": 10.0,
+            "title": "Call Timeout",
+            "default": 600
+          },
+          "max_output_tokens": {
+            "type": "integer",
+            "maximum": 262144.0,
+            "minimum": 256.0,
+            "title": "Max Output Tokens",
+            "default": 16384
+          },
+          "sub2api_url": {
+            "type": "string",
+            "title": "Sub2Api Url",
+            "default": ""
+          },
+          "sync_seconds": {
+            "type": "integer",
+            "maximum": 86400.0,
+            "minimum": 10.0,
+            "title": "Sync Seconds",
+            "default": 60
+          },
+          "prompts": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "propertyNames": {
+              "$ref": "#/components/schemas/Kind"
+            },
+            "type": "object",
+            "title": "Prompts"
+          },
+          "default_expected_json": {
+            "type": "string",
+            "title": "Default Expected Json",
+            "default": "{\"evens\":[2,4,6,8,10],\"sum_of_squares\":220,\"count\":5}"
+          },
+          "has_sub2api_key": {
+            "type": "boolean",
+            "title": "Has Sub2Api Key",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "SettingsView",
+        "description": "Omit the source administrator key from every settings response."
+      },
+      "Snapshot": {
+        "properties": {
+          "account_name": {
+            "type": "string",
+            "title": "Account Name"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "effort": {
+            "type": "string",
+            "title": "Effort"
+          },
+          "protocol": {
+            "type": "string",
+            "title": "Protocol"
+          },
+          "group_revision": {
+            "type": "integer",
+            "title": "Group Revision"
+          },
+          "recipe": {
+            "$ref": "#/components/schemas/GroupInput"
+          },
+          "timezone": {
+            "type": "string",
+            "title": "Timezone"
+          },
+          "evaluator_version": {
+            "type": "string",
+            "title": "Evaluator Version",
+            "default": "1"
+          },
+          "call_timeout": {
+            "type": "integer",
+            "title": "Call Timeout",
+            "default": 600
+          },
+          "max_output_tokens": {
+            "type": "integer",
+            "title": "Max Output Tokens",
+            "default": 16384
+          },
+          "fingerprint_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fingerprint Version"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "account_name",
+          "model",
+          "effort",
+          "protocol",
+          "group_revision",
+          "recipe",
+          "timezone"
+        ],
+        "title": "Snapshot",
+        "description": "Freeze the non-secret conditions used to interpret a historical run."
+      },
+      "Status": {
+        "type": "string",
+        "enum": [
+          "queued",
+          "running",
+          "completed",
+          "failed",
+          "cancelled",
+          "interrupted"
+        ],
+        "title": "Status",
+        "description": "Represent execution state independently of answer quality."
+      },
+      "Target": {
+        "properties": {
+          "account_id": {
+            "type": "string",
+            "title": "Account Id"
+          },
+          "model": {
+            "type": "string",
+            "maxLength": 250,
+            "minLength": 1,
+            "title": "Model"
+          },
+          "effort": {
+            "type": "string",
+            "maxLength": 40,
+            "title": "Effort",
+            "default": "default"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "group_id": {
+            "type": "string",
+            "title": "Group Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "account_id",
+          "model",
+          "group_id"
+        ],
+        "title": "Target",
+        "description": "Persist one account check within a named evaluation group."
+      },
+      "TargetInput": {
+        "properties": {
+          "account_id": {
+            "type": "string",
+            "title": "Account Id"
+          },
+          "model": {
+            "type": "string",
+            "maxLength": 250,
+            "minLength": 1,
+            "title": "Model"
+          },
+          "effort": {
+            "type": "string",
+            "maxLength": 40,
+            "title": "Effort",
+            "default": "default"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "account_id",
+          "model"
+        ],
+        "title": "TargetInput",
+        "description": "Select a saved account and its invocation preferences for one check."
+      },
+      "TokenInput": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "maxLength": 512,
+            "minLength": 24,
+            "title": "Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "token"
+        ],
+        "title": "TokenInput",
+        "description": "Require enough entropy-bearing room for an operator-provided token."
+      },
+      "Usage": {
+        "properties": {
+          "input_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Input Tokens"
+          },
+          "output_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Output Tokens"
+          },
+          "total_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Tokens"
+          },
+          "reasoning_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reasoning Tokens"
+          },
+          "cached_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cached Tokens"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "Usage",
+        "description": "Represent only token counts actually supplied by the upstream."
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}
