@@ -16,7 +16,19 @@ Responses may use JSON or SSE streaming. Recognizable SSE frames are processed i
 
 响应支持 JSON 和 SSE 流式格式；上游缺少或错误标注 `Content-Type` 时，可识别的 SSE 仍按流逐步处理，不会切换所选 API 协议。无效数据与缺少完成标志的流仍明确报错，并尽可能保留部分输出。
 
-Probe connection performs one real model call using account defaults and normal quotas. Its details retain usage and duration. For sub2api, configure the service root and administrator key in Settings, load candidates, and select imports. Imported routing and proxy credentials belong to sub2api; model preferences and concurrency belong to this application. Source failures are visible on account cards. Sync does not add newly discovered accounts automatically.
+**Probe connection / 检测连通性** performs one real model call using account defaults and normal quotas. It runs in the background without opening a dialog. The account card shows queued/running status, then duration or a failure reason; **View probe / 查看探测结果** opens full details on request. An active probe continues after leaving the page. While the Models page is visible, active probes update every second even if general auto-refresh is off. Duplicate probes are blocked until the current one finishes.
+
+连通性检测在后台运行，不自动弹出详情；成功后直接在账号卡片显示耗时，失败显示原因，按需点击查看详情。离开页面不会中止探测；返回模型管理可继续查看状态。
+
+Use the trash icon on an account card to delete its **local** account configuration after confirmation. Its checks are removed, shared groups retain other accounts, and empty groups are removed. Historical results and their immutable snapshots remain subject to the normal retention policy. Pending/running checks or probes must be cancelled or allowed to finish first. Imported account deletion does not delete or modify the original sub2api account or proxy; automatic sync will not re-import it.
+
+删除账号需确认；这会移除本地账号及其检测配置、清理空测试组，保留共享组中的其他账号与历史记录。已有排队或执行中的检测须先取消或等待完成。删除导入账号不会改动 sub2api 原账号和代理，也不会被定时同步自动重新导入。
+
+Account cards and test-group cards on all four check pages have a drag handle. Drag with a mouse or touch, or focus the handle and press Space, arrow keys, then Space to drop; Escape cancels. Order is saved on the server and survives refresh/restart across browsers. Each detector keeps its own group order. Reordering does not change prompts, schedules, model selection, or history, and makes no model calls. If another user changes the collection during a drag, refresh the list and retry.
+
+模型管理卡片和四类检测的测试组卡片均可通过拖动手柄排序，也支持键盘操作。排序保存到服务端，各检测类型独立排列；刷新或重启后仍保留，不触发模型调用。
+
+For sub2api, configure the service root and administrator key in Settings, load candidates, and select imports. Imported routing and proxy credentials belong to sub2api; model preferences and concurrency belong to this application. Source failures are visible on account cards. Sync does not add newly discovered accounts automatically.
 
 **Create test group / 新建测试组** selects one or more accounts. Each has an independent model and reasoning choice. The initial choice uses account defaults; later successful group saves update that account's remembered choice. Existing groups never change implicitly. A group shares a prompt, rule, and schedule; history columns align execution batches, rows identify account/model/reasoning. Responsive page size changes only visible columns. **More history / 查看更多历史** pages older batches.
 

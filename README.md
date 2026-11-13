@@ -49,6 +49,8 @@ Add an account under **Models**, choose its explicit protocol (OpenAI Responses,
 
 Model fields reopen the full cached list and filter only while typing. Reasoning choices respect known model restrictions; incompatible saved choices require an explicit correction.
 
+Drag account and test-group cards to save their display order. Connectivity probes run in the background and show status and duration on account cards. Accounts can be deleted locally with confirmation; historical results are retained, and imported source accounts remain untouched. See [account management](docs/usage.md#accounts-and-test-groups) for details.
+
 For sub2api accounts, configure **Settings → Source connection**, import accounts, then choose and save each account's default model. **Verify source route** refreshes the displayed proxy ID/address without a model call; **Probe connection** performs a metered call. See [source connection and proxy verification](docs/deployment.md#manual-sub2api-connection).
 
 ## Try the local demo

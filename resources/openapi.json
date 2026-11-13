@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Intelligence Degradation Detection",
-    "version": "0.1.0"
+    "version": "0.1.1"
   },
   "paths": {
     "/healthz": {
@@ -39,11 +39,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": {
-                    "type": "boolean"
-                  },
-                  "type": "object",
-                  "title": "Response Session Api V1 Auth Session Get"
+                  "$ref": "#/components/schemas/SessionView"
                 }
               }
             }
@@ -70,11 +66,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": {
-                    "type": "boolean"
-                  },
-                  "type": "object",
-                  "title": "Response Login Api V1 Auth Session Post"
+                  "$ref": "#/components/schemas/SessionView"
                 }
               }
             }
@@ -283,6 +275,38 @@
         }
       }
     },
+    "/api/v1/accounts/order": {
+      "put": {
+        "summary": "Order Accounts",
+        "description": "Save account card order independently of provider configuration.",
+        "operationId": "order_accounts_api_v1_accounts_order_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/accounts/models/preview": {
       "post": {
         "summary": "Preview Models",
@@ -380,6 +404,37 @@
                 }
               }
             }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete Account",
+        "description": "Delete an idle local account and checks, preserving historical evidence.",
+        "operationId": "delete_account_api_v1_accounts__identity__delete",
+        "parameters": [
+          {
+            "name": "identity",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Identity"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
           },
           "422": {
             "description": "Validation Error",
@@ -694,6 +749,48 @@
                 }
               }
             }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/groups/order/{kind}": {
+      "put": {
+        "summary": "Order Groups",
+        "description": "Save card order for one detector without altering schedules or history.",
+        "operationId": "order_groups_api_v1_groups_order__kind__put",
+        "parameters": [
+          {
+            "name": "kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Kind"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
           },
           "422": {
             "description": "Validation Error",
@@ -1770,6 +1867,12 @@
             "type": "string",
             "title": "Id"
           },
+          "sort_order": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Sort Order",
+            "default": 0
+          },
           "recipe": {
             "$ref": "#/components/schemas/GroupInput"
           },
@@ -2083,6 +2186,23 @@
         ],
         "title": "LoginInput",
         "description": "Accept a token only in a request body, never in a URL."
+      },
+      "OrderInput": {
+        "properties": {
+          "ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ids"
+        ],
+        "title": "OrderInput",
+        "description": "Submit all identities in the displayed collection's intended order."
       },
       "Output": {
         "properties": {
@@ -2614,6 +2734,25 @@
         ],
         "title": "RunSummary",
         "description": "Project lightweight history without loading private full output bodies."
+      },
+      "SessionView": {
+        "properties": {
+          "authenticated": {
+            "type": "boolean",
+            "title": "Authenticated"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "authenticated",
+          "version"
+        ],
+        "title": "SessionView",
+        "description": "Expose authenticated session state and the installed application version."
       },
       "SettingsInput": {
         "properties": {

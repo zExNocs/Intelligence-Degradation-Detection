@@ -120,6 +120,7 @@ class Account(Record):
     """Persist account routing, source identity, and user-owned preferences."""
 
     id: str = Field(default_factory=identifier)
+    sort_order: int = Field(default=0, ge=0)
     config: AccountInput
     credentials: Credentials = Field(default_factory=Credentials)
     source: Literal["direct", "sub2api"] = "direct"
@@ -175,6 +176,7 @@ class Group(Record):
     """Persist a named recipe and the next due server timestamp."""
 
     id: str = Field(default_factory=identifier)
+    sort_order: int = Field(default=0, ge=0)
     recipe: GroupInput
     revision: int = 1
     next_run_at: float | None = None

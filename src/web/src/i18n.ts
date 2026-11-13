@@ -2,6 +2,17 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
 const zh: Record<string, string> = {
+  Move: '移动',
+  'Drag to reorder': '拖动调整顺序',
+  'Press Space to pick up a card, use arrow keys to move it, Space to drop, or Escape to cancel.':
+    '按空格选中卡片，方向键移动，再按空格放下，或按 Escape 取消。',
+  'Card picked up.': '已选中卡片。',
+  'Card position {{position}}.': '卡片位置 {{position}}。',
+  'Card dropped.': '已放下卡片。',
+  'Reordering cancelled.': '已取消排序。',
+  'Delete account': '删除账号',
+  'Delete this local account and its checks? Empty test groups will be removed. Historical results are retained. The original sub2api account and proxy are unchanged.':
+    '删除此本地账号及其检测配置？空测试组也会被移除，历史结果仍保留。sub2api 的原账号和代理不会改变。',
   'Candidate model': '候选模型',
   'Probability within bank': '候选库内概率',
   'Valid outputs': '有效输出数',

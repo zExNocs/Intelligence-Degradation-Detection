@@ -13,6 +13,7 @@ from ..domain.models import (
     DomainError,
     Group,
     GroupInput,
+    Kind,
     Run,
     Settings,
     Status,
@@ -27,6 +28,7 @@ from .schemas import (
     GroupView,
     HistoryPage,
     ImportInput,
+    OrderInput,
     ReviewInput,
     RunDetail,
     SettingsInput,
@@ -49,7 +51,16 @@ def api_router(service: EvaluationService, worker: Worker) -> APIRouter:
     @router.get("/accounts", response_model=list[AccountView])
     async def accounts() -> list[AccountView]:
         """List account metadata without credentials."""
-        return [AccountView.from_account(account) for account in repo.all(Account)]
+        return [
+            AccountView.from_account(account)
+            for account in sorted(repo.all(Account), key=lambda item: item.sort_order)
+        ]
+
+    @router.put("/accounts/order", status_code=204)
+    async def order_accounts(value: OrderInput) -> Response:
+        """Save account card order independently of provider configuration."""
+        await service.reorder_accounts(value.ids)
+        return Response(status_code=204)
 
     @router.post("/accounts", response_model=AccountView, status_code=201)
     async def create_account(value: AccountInput) -> AccountView:
@@ -67,6 +78,12 @@ def api_router(service: EvaluationService, worker: Worker) -> APIRouter:
     async def update_account(identity: str, value: AccountInput) -> AccountView:
         """Edit account preferences while preserving omitted secrets."""
         return AccountView.from_account(service.save_account(value, identity))
+
+    @router.delete("/accounts/{identity}", status_code=204)
+    async def delete_account(identity: str) -> Response:
+        """Delete an idle local account and checks, preserving historical evidence."""
+        await service.delete_account(identity)
+        return Response(status_code=204)
 
     @router.post("/accounts/{identity}/models/refresh", response_model=AccountView)
     async def refresh_models(identity: str) -> AccountView:
@@ -124,8 +141,14 @@ def api_router(service: EvaluationService, worker: Worker) -> APIRouter:
                     if run.target_id
                 },
             )
-            for group in repo.all(Group)
+            for group in sorted(repo.all(Group), key=lambda item: item.sort_order)
         ]
+
+    @router.put("/groups/order/{kind}", status_code=204)
+    async def order_groups(kind: Kind, value: OrderInput) -> Response:
+        """Save card order for one detector without altering schedules or history."""
+        await service.reorder_groups(kind, value.ids)
+        return Response(status_code=204)
 
     @router.post("/groups", response_model=Group, status_code=201)
     async def create_group(value: GroupInput) -> Group:

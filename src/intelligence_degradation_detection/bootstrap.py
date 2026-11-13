@@ -28,7 +28,7 @@ from .application.service import EvaluationService
 from .application.worker import Worker
 from .domain.models import DomainError
 from .interfaces.http import api_router
-from .interfaces.schemas import LoginInput, TokenInput
+from .interfaces.schemas import LoginInput, SessionView, TokenInput
 
 PARENT_CSP = "; ".join(
     (
@@ -201,7 +201,7 @@ def create_app(
     @app.post("/api/v1/auth/session")
     async def login(
         value: LoginInput, request: Request, response: Response
-    ) -> dict[str, bool]:
+    ) -> SessionView:
         """Exchange a valid access token for a revocable HttpOnly session."""
         peer = request.client.host if request.client else "unknown"
         attempts = login_attempts[peer]
@@ -225,12 +225,12 @@ def create_app(
             max_age=7 * 86400,
             path=cookie_path,
         )
-        return {"authenticated": True}
+        return SessionView(authenticated=True, version=__version__)
 
     @app.get("/api/v1/auth/session")
-    async def session() -> dict[str, bool]:
+    async def session() -> SessionView:
         """Let the app check session validity without requesting model data."""
-        return {"authenticated": True}
+        return SessionView(authenticated=True, version=__version__)
 
     @app.get("/api/v1/preview-policy")
     async def preview_policy() -> dict[str, str]:

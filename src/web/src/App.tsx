@@ -41,7 +41,7 @@ import {
 import { QueryClientProvider } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { api, queryClient, send } from './api';
+import { api, queryClient, send, type Session } from './api';
 import { RefreshProvider } from './state';
 import { AccountsPage } from './pages/Accounts';
 import { ChecksPage } from './pages/Checks';
@@ -178,7 +178,7 @@ function Controls({
   );
 }
 
-function Login({ signedIn }: { signedIn: () => void }) {
+function Login({ signedIn }: { signedIn: (session: Session) => void }) {
   const { t } = useTranslation();
   const [token, setToken] = useState('');
   const [error, setError] = useState<Error | null>(null);
@@ -212,9 +212,9 @@ function Login({ signedIn }: { signedIn: () => void }) {
             event.preventDefault();
             setLoading(true);
             try {
-              await send('/auth/session', { token });
+              const session = await send<Session>('/auth/session', { token });
               setToken('');
-              signedIn();
+              signedIn(session);
             } catch (error) {
               setError(error instanceof Error ? error : new Error('Request failed'));
             } finally {
@@ -244,6 +244,7 @@ function Login({ signedIn }: { signedIn: () => void }) {
 export default function App() {
   const { t } = useTranslation();
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
+  const [version, setVersion] = useState('');
   const [page, setPage] = useState<Page>('dashboard');
   const [opened, { toggle, close }] = useDisclosure();
   const [mode, setMode] = useState<Mode>(() => {
@@ -261,8 +262,11 @@ export default function App() {
       queryClient.clear();
     };
     window.addEventListener('idd:unauthorized', unauthorized);
-    void api('/auth/session')
-      .then(() => setAuthenticated(true))
+    void api<Session>('/auth/session')
+      .then((session) => {
+        setVersion(session.version);
+        setAuthenticated(true);
+      })
       .catch(() => setAuthenticated(false));
     return () => window.removeEventListener('idd:unauthorized', unauthorized);
   }, []);
@@ -304,7 +308,12 @@ export default function App() {
           ) : !authenticated ? (
             <>
               <div className="login-controls">{controls}</div>
-              <Login signedIn={() => setAuthenticated(true)} />
+              <Login
+                signedIn={(session) => {
+                  setVersion(session.version);
+                  setAuthenticated(true);
+                }}
+              />
             </>
           ) : (
             <AppShell
@@ -365,7 +374,7 @@ export default function App() {
                       </Text>
                     </Group>
                     <Text size="xs" c="dimmed" mt={6}>
-                      v0.1.0
+                      {version ? `v${version}` : ''}
                     </Text>
                   </Paper>
                   <Divider my="md" />

@@ -137,10 +137,203 @@ test('accounts without a default model guide setup before a metered probe', asyn
   await expect(dialog).not.toBeVisible();
   expect(await (await page.request.get('/api/v1/fixture/calls')).json()).toEqual(before);
   await card.getByRole('button', { name: 'Probe connection' }).click();
-  await expect(page.getByRole('dialog', { name: 'Result details' })).toBeVisible();
+  await expect(card.getByText(/^Duration: \d+\.\d{2}s$/)).toBeVisible();
+  await expect(page.getByRole('dialog')).not.toBeVisible();
   await expect
     .poll(async () => await (await page.request.get('/api/v1/fixture/calls')).json())
     .not.toEqual(before);
+  await card.getByRole('button', { name: 'View probe' }).click();
+  await expect(page.getByRole('dialog', { name: 'Result details' })).toBeVisible();
+});
+
+test('background probes stay visible across navigation and show failures on cards', async ({
+  page,
+}) => {
+  await login(page);
+  await page.evaluate(() => localStorage.setItem('idd-refresh', '0'));
+  await page.reload();
+  const account = await (
+    await page.request.post('/api/v1/accounts', {
+      data: { name: 'Background probe', api_key: 'fixture-key', default_model: 'fixture-slow' },
+    })
+  ).json();
+  await navigate(page, 'Models');
+  const card = page.locator(`[data-account-id="${account.id}"]`);
+  await card.getByRole('button', { name: 'Probe connection' }).click();
+  await expect(card.getByRole('button', { name: 'Probe connection' })).toBeDisabled();
+  await expect(page.getByRole('dialog')).not.toBeVisible();
+  await navigate(page, 'Dashboard');
+  await navigate(page, 'Models');
+  await expect(card.getByRole('button', { name: 'Probe connection' })).toBeDisabled();
+  const probes = await (await page.request.get(`/api/v1/accounts/${account.id}/probes`)).json();
+  expect(probes).toHaveLength(1);
+  await page.request.post(`/api/v1/runs/${probes[0].id}/cancel`);
+  await expect(card.getByText('cancelled', { exact: true })).toBeVisible();
+  await expect(card.getByRole('button', { name: 'Probe connection' })).toBeEnabled();
+  await page.request.put(`/api/v1/accounts/${account.id}`, {
+    data: { name: account.name, default_model: 'fixture-failure' },
+  });
+  await page.getByRole('button', { name: 'Refresh', exact: true }).click();
+  await card.getByRole('button', { name: 'Probe connection' }).click();
+  await expect(card.getByText('Fixture upstream unavailable.')).toBeVisible();
+  await expect(card.getByText('failed', { exact: true })).toBeVisible();
+  await expect(page.getByRole('dialog')).not.toBeVisible();
+});
+
+test('account deletion confirms local cleanup and removes cards and empty groups', async ({
+  page,
+}) => {
+  await login(page);
+  const account = await (
+    await page.request.post('/api/v1/accounts', {
+      data: { name: 'Disposable account', api_key: 'fixture-key', default_model: 'fixture-model' },
+    })
+  ).json();
+  const group = await (
+    await page.request.post('/api/v1/groups', {
+      data: {
+        name: 'Disposable group',
+        kind: 'other',
+        prompt: 'Fixture',
+        enabled: false,
+        targets: [{ account_id: account.id, model: 'fixture-model' }],
+      },
+    })
+  ).json();
+  await navigate(page, 'Models');
+  const card = page.locator(`[data-account-id="${account.id}"]`);
+  await card.getByRole('button', { name: 'Delete Disposable account', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: 'Delete account' });
+  await expect(dialog.getByText(/Historical results are retained/)).toBeVisible();
+  await dialog.getByRole('button', { name: 'Cancel', exact: true }).click();
+  await expect(card).toBeVisible();
+  await card.getByRole('button', { name: 'Delete Disposable account', exact: true }).click();
+  await dialog.getByRole('button', { name: 'Delete', exact: true }).click();
+  await expect(dialog).not.toBeVisible();
+  await expect(card).toHaveCount(0);
+  expect(
+    (await (await page.request.get('/api/v1/groups')).json()).map(
+      (item: { id: string }) => item.id,
+    ),
+  ).not.toContain(group.id);
+  await page.reload();
+  await navigate(page, 'Models');
+  await expect(card).toHaveCount(0);
+});
+
+test('account cards drag by handle, persist after reload, and recover from save failure', async ({
+  page,
+}) => {
+  await login(page);
+  await navigate(page, 'Models');
+  const cards = page.locator('.account-card');
+  const original = await cards.evaluateAll((items) =>
+    items.map((item) => item.getAttribute('data-account-id')),
+  );
+  const before = await (await page.request.get('/api/v1/fixture/calls')).json();
+  const first = cards.nth(0).getByRole('button', { name: /^Move / });
+  const second = cards.nth(1);
+  const start = (await first.boundingBox())!;
+  const end = (await second.boundingBox())!;
+  const saved = page.waitForResponse(
+    (response) =>
+      response.url().endsWith('/accounts/order') && response.request().method() === 'PUT',
+  );
+  await page.mouse.move(start.x + start.width / 2, start.y + start.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(end.x + end.width / 2, end.y + 40, { steps: 15 });
+  await page.mouse.up();
+  expect((await saved).status()).toBe(204);
+  const expected = [original[1], original[0], ...original.slice(2)];
+  await expect
+    .poll(() =>
+      cards.evaluateAll((items) => items.map((item) => item.getAttribute('data-account-id'))),
+    )
+    .toEqual(expected);
+  await page.reload();
+  await navigate(page, 'Models');
+  await expect
+    .poll(() =>
+      cards.evaluateAll((items) => items.map((item) => item.getAttribute('data-account-id'))),
+    )
+    .toEqual(expected);
+  await page.route('**/api/v1/accounts/order', (route) =>
+    route.fulfill({
+      status: 409,
+      contentType: 'application/json',
+      body: JSON.stringify({ message: 'Fixture stale order.' }),
+    }),
+  );
+  const handle = cards.nth(0).getByRole('button', { name: /^Move / });
+  await handle.focus();
+  // Allow the keyboard sensor's deferred listener to attach before arrow input.
+  await page.keyboard.press('Space', { delay: 50 });
+  await expect(handle).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByRole('status')).toHaveText('Card position 1.');
+  await page.keyboard.press('ArrowRight');
+  await expect(page.getByRole('status')).toHaveText('Card position 2.');
+  await page.keyboard.press('Space');
+  await expect(page.getByText('Fixture stale order.')).toBeVisible();
+  await expect
+    .poll(() =>
+      cards.evaluateAll((items) => items.map((item) => item.getAttribute('data-account-id'))),
+    )
+    .toEqual(expected);
+  expect(await (await page.request.get('/api/v1/fixture/calls')).json()).toEqual(before);
+});
+
+test('all four check pages support keyboard card ordering without running checks', async ({
+  page,
+}) => {
+  await login(page);
+  for (const [kind, name] of [
+    ['pelican', 'Pelican'],
+    ['comparison', 'Comparison'],
+    ['modeltrace', 'ModelTrace'],
+    ['other', 'Other checks'],
+  ]) {
+    const account = await (
+      await page.request.post('/api/v1/accounts', {
+        data: { name: `Sorting ${kind}`, api_key: 'fixture-key' },
+      })
+    ).json();
+    const groups: string[] = [];
+    for (let index = 0; index < 2; index++) {
+      const group = await (
+        await page.request.post('/api/v1/groups', {
+          data: {
+            name: `Sorting ${kind} ${index}`,
+            kind,
+            prompt: 'Fixture',
+            enabled: false,
+            targets: [{ account_id: account.id, model: 'fixture-model' }],
+          },
+        })
+      ).json();
+      groups.push(group.id);
+    }
+    const before = await (await page.request.get('/api/v1/fixture/calls')).json();
+    await navigate(page, name);
+    const handle = page.getByRole('button', { name: `Move Sorting ${kind} 1`, exact: true });
+    await handle.scrollIntoViewIfNeeded();
+    await handle.focus();
+    await page.keyboard.press('Space', { delay: 50 });
+    await expect(handle).toHaveAttribute('aria-pressed', 'true');
+    const position = (await page.locator('[data-group-id]').count()) - 1;
+    await expect(page.getByRole('status')).toHaveText(`Card position ${position + 1}.`);
+    await page.keyboard.press('ArrowUp');
+    await expect(page.getByRole('status')).toHaveText(`Card position ${position}.`);
+    await page.keyboard.press('Space');
+    const ordered = () =>
+      page
+        .locator('[data-group-id]')
+        .evaluateAll((items) => items.map((item) => item.getAttribute('data-group-id')));
+    await expect.poll(async () => (await ordered()).slice(-2)).toEqual(groups.slice().reverse());
+    await page.reload();
+    await navigate(page, name);
+    await expect.poll(async () => (await ordered()).slice(-2)).toEqual(groups.slice().reverse());
+    expect(await (await page.request.get('/api/v1/fixture/calls')).json()).toEqual(before);
+  }
 });
 
 test('source connection fields explain URL, credentials, and saved sync configuration', async ({
@@ -301,7 +494,7 @@ test('cancellation preserves evidence and excludes dashboard metrics; fingerprin
     )
     .toBe('completed');
   await navigate(page, 'ModelTrace');
-  await page.locator('.result-cell').click();
+  await page.locator(`[data-group-id="${fingerprint.id}"] .result-cell`).click();
   const dialog = page.getByRole('dialog');
   await expect(dialog.getByRole('columnheader', { name: 'Probability within bank' })).toBeVisible();
   await expect(dialog.locator('tbody tr')).toHaveCount(18);

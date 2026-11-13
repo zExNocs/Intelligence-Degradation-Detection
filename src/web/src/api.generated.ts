@@ -139,6 +139,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/accounts/order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Order Accounts
+         * @description Save account card order independently of provider configuration.
+         */
+        put: operations["order_accounts_api_v1_accounts_order_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/accounts/models/preview": {
         parameters: {
             query?: never;
@@ -173,7 +193,11 @@ export interface paths {
          */
         put: operations["update_account_api_v1_accounts__identity__put"];
         post?: never;
-        delete?: never;
+        /**
+         * Delete Account
+         * @description Delete an idle local account and checks, preserving historical evidence.
+         */
+        delete: operations["delete_account_api_v1_accounts__identity__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -337,6 +361,26 @@ export interface paths {
          * @description Create a quota-checked batch of account evaluations.
          */
         post: operations["create_group_api_v1_groups_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/groups/order/{kind}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Order Groups
+         * @description Save card order for one detector without altering schedules or history.
+         */
+        put: operations["order_groups_api_v1_groups_order__kind__put"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -829,6 +873,11 @@ export interface components {
         Group: {
             /** Id */
             id?: string;
+            /**
+             * Sort Order
+             * @default 0
+             */
+            sort_order: number;
             recipe: components["schemas"]["GroupInput"];
             /**
              * Revision
@@ -980,6 +1029,14 @@ export interface components {
         LoginInput: {
             /** Token */
             token: string;
+        };
+        /**
+         * OrderInput
+         * @description Submit all identities in the displayed collection's intended order.
+         */
+        OrderInput: {
+            /** Ids */
+            ids: string[];
         };
         /**
          * Output
@@ -1161,6 +1218,16 @@ export interface components {
              * @default
              */
             preview: string;
+        };
+        /**
+         * SessionView
+         * @description Expose authenticated session state and the installed application version.
+         */
+        SessionView: {
+            /** Authenticated */
+            authenticated: boolean;
+            /** Version */
+            version: string;
         };
         /**
          * SettingsInput
@@ -1455,9 +1522,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: boolean;
-                    };
+                    "application/json": components["schemas"]["SessionView"];
                 };
             };
         };
@@ -1481,9 +1546,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: boolean;
-                    };
+                    "application/json": components["schemas"]["SessionView"];
                 };
             };
             /** @description Validation Error */
@@ -1657,6 +1720,37 @@ export interface operations {
             };
         };
     };
+    order_accounts_api_v1_accounts_order_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OrderInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     preview_models_api_v1_accounts_models_preview_post: {
         parameters: {
             query?: {
@@ -1715,6 +1809,35 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["AccountView"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_account_api_v1_accounts__identity__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                identity: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -1969,6 +2092,39 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["Group"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    order_groups_api_v1_groups_order__kind__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                kind: components["schemas"]["Kind"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OrderInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

@@ -14,7 +14,7 @@ import {
   Title,
   Tooltip,
 } from '@mantine/core';
-import { useElementSize, useIntersection } from '@mantine/hooks';
+import { useElementSize, useIntersection, useMergedRef } from '@mantine/hooks';
 import { useQuery } from '@tanstack/react-query';
 import {
   IconBrandGithub,
@@ -48,6 +48,7 @@ import { CostNotice, ErrorNotice, PageHeader, ResultBadge, showError } from '../
 import { GroupEditor } from '../components/GroupEditor';
 import { HtmlPreview } from '../components/HtmlPreview';
 import { RunDetails } from '../components/RunDetails';
+import { SortableCards, useSortableCard } from '../components/SortableCards';
 
 const pageNames: Record<Kind, string> = {
   pelican: 'Pelican',
@@ -139,6 +140,8 @@ function GroupMatrix({
 }) {
   const { t, i18n } = useTranslation();
   const { ref, width } = useElementSize();
+  const sortable = useSortableCard(group.id, group.recipe.name);
+  const cardRef = useMergedRef(ref, sortable.ref);
   const limit = Math.max(
     1,
     Math.min(8, Math.floor((width - 240) / (group.recipe.kind === 'pelican' ? 248 : 174))),
@@ -166,7 +169,15 @@ function GroupMatrix({
     }
   }
   return (
-    <Paper withBorder p="lg" radius="lg" className="matrix-panel" ref={ref}>
+    <Paper
+      withBorder
+      p="lg"
+      radius="lg"
+      className="matrix-panel"
+      ref={cardRef}
+      style={sortable.style}
+      data-group-id={group.id}
+    >
       <ButtonGroup justify="space-between" mb="lg" align="flex-start">
         <Stack gap={4}>
           <ButtonGroup gap="sm">
@@ -182,6 +193,7 @@ function GroupMatrix({
           </Text>
         </Stack>
         <ButtonGroup gap="xs">
+          {sortable.handle}
           <Button
             variant="light"
             size="xs"
@@ -425,17 +437,21 @@ export function ChecksPage({ kind }: { kind: Kind }) {
         </ButtonGroup>
       )}
       <ErrorNotice error={groups.error} />
-      <Stack gap="xl">
-        {visible.map((group) => (
-          <GroupMatrix
-            key={group.id}
-            group={group}
-            accounts={accounts.data ?? []}
-            edit={() => setEditor(group)}
-            view={setDetails}
-          />
-        ))}
-      </Stack>
+      <SortableCards key={kind} items={visible} endpoint={`/groups/order/${kind}`}>
+        {(ordered) => (
+          <Stack gap="xl">
+            {ordered.map((group) => (
+              <GroupMatrix
+                key={group.id}
+                group={group}
+                accounts={accounts.data ?? []}
+                edit={() => setEditor(group)}
+                view={setDetails}
+              />
+            ))}
+          </Stack>
+        )}
+      </SortableCards>
       {!visible.length && !groups.isLoading && (
         <Paper withBorder p={50} className="empty-state">
           <IconPlus size={40} stroke={1.2} />

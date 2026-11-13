@@ -29,8 +29,10 @@ import {
   IconRefresh,
   IconRoute,
   IconServer,
+  IconTrash,
 } from '@tabler/icons-react';
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { useTranslation } from 'react-i18next';
 import {
@@ -39,14 +41,16 @@ import {
   type Run,
   type SourceAccount,
   api,
+  queryClient,
   refreshViews,
   send,
 } from '../api';
-import { formatTime, useLive, useServerClock } from '../state';
+import { formatTime, useLive, useRefresh, useServerClock } from '../state';
 import { CostNotice, ErrorNotice, PageHeader, ResultBadge, showError } from '../components/Common';
 import { RunDetails } from '../components/RunDetails';
 import { ModelInput } from '../components/ModelInput';
 import { ReasoningField } from '../components/ReasoningField';
+import { SortableCards, useSortableCard } from '../components/SortableCards';
 
 const defaults: AccountInput = {
   name: '',
@@ -429,18 +433,194 @@ function SourceImport({ close }: { close: () => void }) {
   );
 }
 
-function ProbeSummary({ accountId, view }: { accountId: string; view: (id: string) => void }) {
+function AccountCard({
+  account,
+  edit,
+  remove,
+  view,
+}: {
+  account: Account;
+  edit: () => void;
+  remove: () => void;
+  view: (id: string) => void;
+}) {
   const { t } = useTranslation();
-  const query = useLive<Run[]>(['probes', accountId], `/accounts/${accountId}/probes`);
+  const { seconds } = useRefresh();
+  const sortable = useSortableCard(account.id, account.name);
+  const [submitting, setSubmitting] = useState(false);
+  const query = useQuery<Run[]>({
+    queryKey: ['probes', account.id],
+    queryFn: () => api(`/accounts/${account.id}/probes`),
+    refetchInterval: (query) => {
+      const status = query.state.data?.at(-1)?.status;
+      return status === 'queued' || status === 'running' ? 1000 : seconds ? seconds * 1000 : false;
+    },
+    refetchIntervalInBackground: false,
+  });
   const run = query.data?.at(-1);
-  return run ? (
-    <Group justify="space-between" mt="sm">
-      <ResultBadge status={run.status ?? 'queued'} />
-      <Button size="compact-xs" variant="subtle" onClick={() => view(run.id!)}>
-        {t('View probe')} · {run.output?.elapsed?.toFixed(2)}s
+  const active = run?.status === 'queued' || run?.status === 'running';
+  return (
+    <Paper
+      ref={sortable.ref}
+      style={sortable.style}
+      withBorder
+      radius="lg"
+      p="lg"
+      className="account-card"
+      data-account-id={account.id}
+    >
+      <Group justify="space-between">
+        <Group>
+          <div className="account-icon">
+            <IconServer size={22} />
+          </div>
+          <Stack gap={2}>
+            <Text fw={650}>{account.name}</Text>
+            <Text size="xs" c="dimmed">
+              {account.protocol}
+            </Text>
+          </Stack>
+        </Group>
+        <Group gap={2}>
+          {sortable.handle}
+          <ActionIcon variant="subtle" aria-label={`${t('Edit')} ${account.name}`} onClick={edit}>
+            <IconEdit size={18} />
+          </ActionIcon>
+          <ActionIcon
+            variant="subtle"
+            color="red"
+            aria-label={`${t('Delete')} ${account.name}`}
+            disabled={submitting || active}
+            onClick={remove}
+          >
+            <IconTrash size={18} />
+          </ActionIcon>
+        </Group>
+      </Group>
+      <Group my="md" gap={6}>
+        <Badge variant="light" color={account.enabled && account.source_active ? 'teal' : 'gray'}>
+          {t(account.enabled ? 'Enabled' : 'Disabled')}
+        </Badge>
+        <Badge variant="outline" color="gray">
+          {account.source === 'direct' ? t('Direct API') : 'sub2api'}
+        </Badge>
+        {account.has_proxy && (
+          <Badge variant="light" color="blue" leftSection={<IconRoute size={12} />}>
+            {t('Source proxy')}
+          </Badge>
+        )}
+      </Group>
+      <SourceRoute account={account} />
+      <Text size="sm" fw={500} lineClamp={1}>
+        {account.default_model || '—'}
+      </Text>
+      <Text size="xs" c="dimmed" mt={4}>
+        {account.default_effort} · {t('Maximum parallel calls')}: {account.max_parallel}
+      </Text>
+      {account.source_error && (
+        <Alert color="red" mt="sm" p="xs">
+          {account.source_error}
+        </Alert>
+      )}
+      <Button
+        mt="lg"
+        fullWidth
+        variant="light"
+        leftSection={<IconPlugConnected size={17} />}
+        disabled={!account.enabled}
+        loading={submitting || active}
+        onClick={async () => {
+          if (!account.default_model.trim()) {
+            edit();
+            return;
+          }
+          setSubmitting(true);
+          try {
+            const next = await send<Run>(`/accounts/${account.id}/probe`);
+            queryClient.setQueryData<Run[]>(['probes', account.id], (previous = []) => [
+              ...previous.filter((item) => item.id !== next.id).slice(-4),
+              next,
+            ]);
+            await query.refetch();
+          } catch (error) {
+            showError(error);
+          } finally {
+            setSubmitting(false);
+          }
+        }}
+      >
+        {t(account.default_model.trim() ? 'Probe connection' : 'Choose a model to probe')}
       </Button>
-    </Group>
-  ) : null;
+      {!account.default_model.trim() && (
+        <Text size="xs" c="dimmed" mt={5}>
+          {t('No default model yet. Choose a model and save before probing.')}
+        </Text>
+      )}
+      <ErrorNotice error={query.error} />
+      {run && (
+        <Stack gap={6} mt="sm" aria-live="polite">
+          <Group justify="space-between">
+            <ResultBadge status={run.status ?? 'queued'} />
+            {!active && run.output && (
+              <Text size="sm">
+                {t('Duration')}: {run.output.elapsed?.toFixed(2)}s
+              </Text>
+            )}
+            <Button size="compact-xs" variant="subtle" onClick={() => view(run.id!)}>
+              {t('View probe')}
+            </Button>
+          </Group>
+          {run.error && (
+            <Alert color="red" p="xs">
+              {run.error}
+            </Alert>
+          )}
+        </Stack>
+      )}
+    </Paper>
+  );
+}
+
+function DeleteAccount({ account, close }: { account: Account; close: () => void }) {
+  const { t } = useTranslation();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+  return (
+    <Modal opened onClose={close} title={t('Delete account')} centered>
+      <Stack>
+        <Text fw={600}>{account.name}</Text>
+        <Text size="sm">
+          {t(
+            'Delete this local account and its checks? Empty test groups will be removed. Historical results are retained. The original sub2api account and proxy are unchanged.',
+          )}
+        </Text>
+        <ErrorNotice error={error} />
+        <Group justify="flex-end">
+          <Button variant="default" onClick={close}>
+            {t('Cancel')}
+          </Button>
+          <Button
+            color="red"
+            loading={busy}
+            onClick={async () => {
+              setBusy(true);
+              try {
+                await send(`/accounts/${account.id}`, undefined, 'DELETE');
+                await refreshViews();
+                close();
+              } catch (error) {
+                setError(error instanceof Error ? error : new Error('Request failed'));
+              } finally {
+                setBusy(false);
+              }
+            }}
+          >
+            {t('Delete')}
+          </Button>
+        </Group>
+      </Stack>
+    </Modal>
+  );
 }
 
 export function AccountsPage() {
@@ -449,7 +629,7 @@ export function AccountsPage() {
   const [editor, setEditor] = useState<Account | 'new' | null>(null);
   const [importing, setImporting] = useState(false);
   const [detail, setDetail] = useState<string | null>(null);
-  const [probing, setProbing] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<Account | null>(null);
   return (
     <>
       <PageHeader
@@ -469,92 +649,21 @@ export function AccountsPage() {
       />
       <CostNotice />
       <ErrorNotice error={query.error} />
-      <SimpleGrid cols={{ base: 1, md: 2, xl: 3 }} spacing="lg">
-        {query.data?.map((account) => (
-          <Paper key={account.id} withBorder radius="lg" p="lg" className="account-card">
-            <Group justify="space-between">
-              <Group>
-                <div className="account-icon">
-                  <IconServer size={22} />
-                </div>
-                <Stack gap={2}>
-                  <Text fw={650}>{account.name}</Text>
-                  <Text size="xs" c="dimmed">
-                    {account.protocol}
-                  </Text>
-                </Stack>
-              </Group>
-              <ActionIcon
-                variant="subtle"
-                aria-label={`${t('Edit')} ${account.name}`}
-                onClick={() => setEditor(account)}
-              >
-                <IconEdit size={18} />
-              </ActionIcon>
-            </Group>
-            <Group my="md" gap={6}>
-              <Badge
-                variant="light"
-                color={account.enabled && account.source_active ? 'teal' : 'gray'}
-              >
-                {t(account.enabled ? 'Enabled' : 'Disabled')}
-              </Badge>
-              <Badge variant="outline" color="gray">
-                {account.source === 'direct' ? t('Direct API') : 'sub2api'}
-              </Badge>
-              {account.has_proxy && (
-                <Badge variant="light" color="blue" leftSection={<IconRoute size={12} />}>
-                  {t('Source proxy')}
-                </Badge>
-              )}
-            </Group>
-            <SourceRoute account={account} />
-            <Text size="sm" fw={500} lineClamp={1}>
-              {account.default_model || '—'}
-            </Text>
-            <Text size="xs" c="dimmed" mt={4}>
-              {account.default_effort} · {t('Maximum parallel calls')}: {account.max_parallel}
-            </Text>
-            {account.source_error && (
-              <Alert color="red" mt="sm" p="xs">
-                {account.source_error}
-              </Alert>
-            )}
-            <Button
-              mt="lg"
-              fullWidth
-              variant="light"
-              leftSection={<IconPlugConnected size={17} />}
-              disabled={!account.enabled}
-              loading={probing === account.id}
-              onClick={async () => {
-                if (!account.default_model.trim()) {
-                  setEditor(account);
-                  return;
-                }
-                setProbing(account.id);
-                try {
-                  const run = await send<Run>(`/accounts/${account.id}/probe`);
-                  setDetail(run.id!);
-                  await refreshViews();
-                } catch (error) {
-                  showError(error);
-                } finally {
-                  setProbing(null);
-                }
-              }}
-            >
-              {t(account.default_model.trim() ? 'Probe connection' : 'Choose a model to probe')}
-            </Button>
-            {!account.default_model.trim() && (
-              <Text size="xs" c="dimmed" mt={5}>
-                {t('No default model yet. Choose a model and save before probing.')}
-              </Text>
-            )}
-            <ProbeSummary accountId={account.id} view={setDetail} />
-          </Paper>
-        ))}
-      </SimpleGrid>
+      <SortableCards items={query.data ?? []} endpoint="/accounts/order">
+        {(ordered) => (
+          <SimpleGrid cols={{ base: 1, md: 2, xl: 3 }} spacing="lg">
+            {ordered.map((account) => (
+              <AccountCard
+                key={account.id}
+                account={account}
+                edit={() => setEditor(account)}
+                remove={() => setDeleting(account)}
+                view={setDetail}
+              />
+            ))}
+          </SimpleGrid>
+        )}
+      </SortableCards>
       {query.data?.length === 0 && (
         <Paper p={50} withBorder className="empty-state">
           <IconServer size={42} stroke={1.2} />
@@ -573,6 +682,7 @@ export function AccountsPage() {
         />
       )}
       {importing && <SourceImport close={() => setImporting(false)} />}
+      {deleting && <DeleteAccount account={deleting} close={() => setDeleting(null)} />}
       <RunDetails id={detail} onClose={() => setDetail(null)} />
     </>
   );

@@ -2,6 +2,7 @@ import { QueryClient } from '@tanstack/react-query';
 import type { components } from './api.generated';
 
 export type Account = components['schemas']['AccountView'];
+export type Session = components['schemas']['SessionView'];
 export type AccountInput = components['schemas']['AccountInput'];
 export type Group = components['schemas']['GroupView'];
 export type GroupInput = components['schemas']['GroupInput'];

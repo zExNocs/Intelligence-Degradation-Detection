@@ -13,6 +13,13 @@ class LoginInput(BaseModel):
     token: str = Field(min_length=1, max_length=512)
 
 
+class SessionView(BaseModel):
+    """Expose authenticated session state and the installed application version."""
+
+    authenticated: bool
+    version: str
+
+
 class TokenInput(BaseModel):
     """Require enough entropy-bearing room for an operator-provided token."""
 
@@ -123,6 +130,12 @@ class ImportInput(BaseModel):
     """Select explicit source account identifiers for import."""
 
     ids: list[int] = Field(min_length=1, max_length=100)
+
+
+class OrderInput(BaseModel):
+    """Submit all identities in the displayed collection's intended order."""
+
+    ids: list[str]
 
 
 class CronInput(BaseModel):

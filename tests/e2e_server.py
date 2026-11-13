@@ -51,6 +51,8 @@ class BrowserGateway:
         self.invocations += 1
         if model == "fixture-slow":
             await asyncio.Event().wait()
+        if model == "fixture-failure":
+            raise DomainError("upstream_unavailable", "Fixture upstream unavailable.")
         text = (
             HTML
             if "pelican" in prompt.lower()

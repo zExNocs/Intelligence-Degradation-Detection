@@ -58,6 +58,10 @@ class EvaluationService:
                 if identity
                 else Account(config=config.model_copy(deep=True))
             )
+            if identity is None:
+                account.sort_order = 1 + max(
+                    (item.sort_order for item in self.repo.all(Account)), default=0
+                )
             if account.source == "sub2api":
                 config = config.model_copy(
                     update={
@@ -117,6 +121,77 @@ class EvaluationService:
                 )
             self.repo.save(account)
             return account
+
+    async def delete_account(self, identity: str) -> None:
+        """Remove local routing and dependent checks while retaining run evidence.
+
+        Reject deletion while the account has pending or active work. Shared
+        groups retain other accounts; groups without remaining checks are removed.
+        Source accounts and proxies are never modified.
+        """
+        async with self.lock:
+            with self.repo.transaction():
+                self.repo.get(Account, identity)
+                if self.active_runs(account_id=identity):
+                    raise DomainError(
+                        "account_busy",
+                        "Cancel or wait for active checks and probes before deleting "
+                        "the account.",
+                        409,
+                    )
+                targets = self.repo.all(Target, account_id=identity)
+                for group_id in {target.group_id for target in targets}:
+                    group = self.repo.get(Group, group_id)
+                    remaining = [
+                        target
+                        for target in group.recipe.targets
+                        if target.account_id != identity
+                    ]
+                    if remaining:
+                        group.recipe = group.recipe.model_copy(
+                            update={"targets": remaining}
+                        )
+                        group.revision += 1
+                        self.repo.save(group)
+                    else:
+                        self.repo.delete(Group, group_id)
+                for target in targets:
+                    self.repo.delete(Target, target.id)
+                self.repo.delete(Account, identity)
+
+    def _save_order(
+        self, records: list[Account] | list[Group], identities: list[str]
+    ) -> None:
+        indexed = {record.id: record for record in records}
+        if len(identities) != len(set(identities)) or set(identities) != set(indexed):
+            raise DomainError(
+                "order_conflict",
+                "The list changed. Refresh it and try reordering again.",
+                409,
+            )
+        for position, identity in enumerate(identities):
+            record = indexed[identity]
+            record.sort_order = position
+            self.repo.save(record)
+
+    async def reorder_accounts(self, identities: list[str]) -> None:
+        """Persist a complete account order atomically, rejecting stale lists."""
+        async with self.lock:
+            with self.repo.transaction():
+                self._save_order(self.repo.all(Account), identities)
+
+    async def reorder_groups(self, kind: Kind, identities: list[str]) -> None:
+        """Persist one detector's card order without changing any recipe."""
+        async with self.lock:
+            with self.repo.transaction():
+                self._save_order(
+                    [
+                        group
+                        for group in self.repo.all(Group)
+                        if group.recipe.kind == kind
+                    ],
+                    identities,
+                )
 
     def _catalog_key(self, account: Account) -> str:
         return hashlib.sha256(
@@ -180,9 +255,16 @@ class EvaluationService:
                     account.external_id: account
                     for account in self.repo.all(Account, source="sub2api")
                 }
+                next_order = 1 + max(
+                    (account.sort_order for account in self.repo.all(Account)),
+                    default=0,
+                )
                 for fresh in resolved:
                     if fresh.external_id in existing:
                         fresh = self._merge_source(existing[fresh.external_id], fresh)
+                    else:
+                        fresh.sort_order = next_order
+                        next_order += 1
                     self.repo.save(fresh)
         return self.repo.all(Account, source="sub2api")
 
@@ -257,13 +339,27 @@ class EvaluationService:
             except DomainError as exc:
                 failures.append((account.id, exc))
         with self.repo.transaction():
+            current_accounts = {
+                account.id: account
+                for account in self.repo.all(Account, source="sub2api")
+            }
+            resolved = [
+                (identity, fresh)
+                for identity, fresh in resolved
+                if identity in current_accounts
+            ]
+            failures = [
+                (identity, failure)
+                for identity, failure in failures
+                if identity in current_accounts
+            ]
             if not failures:
                 for identity, fresh in resolved:
                     self.repo.save(
-                        self._merge_source(self.repo.get(Account, identity), fresh)
+                        self._merge_source(current_accounts[identity], fresh)
                     )
             for identity, failure in failures:
-                current = self.repo.get(Account, identity)
+                current = current_accounts[identity]
                 current.source_error = str(failure)
                 if failure.code in {
                     "source_inactive",
@@ -341,6 +437,15 @@ class EvaluationService:
                 group = (
                     self.repo.get(Group, identity) if identity else Group(recipe=recipe)
                 )
+                if identity is None:
+                    group.sort_order = 1 + max(
+                        (
+                            item.sort_order
+                            for item in self.repo.all(Group)
+                            if item.recipe.kind == recipe.kind
+                        ),
+                        default=0,
+                    )
                 existing = self.repo.all(Target, group_id=group.id)
                 requested = Counter(target.account_id for target in recipe.targets)
                 settings = self.repo.settings()
